@@ -21,10 +21,12 @@ public class JdbcUtils {
     private static Map<String, DataSource> dataSourceMap = new ConcurrentHashMap<>(100);
 
     public static DataSource getDataSource(ReportDataSource rptDs) {
-        DataSource dataSource = dataSourceMap.get(rptDs.getUid());
+        //用数据源用户名,密码,jdbcUrl做为key
+        String key = String.format("%s|%s|%s", rptDs.getUser(), rptDs.getPassword(), rptDs.getJdbcUrl()).toLowerCase();
+        DataSource dataSource = dataSourceMap.get(key);
         if (dataSource == null) {
-            dataSource = DataSourcePoolFactory.create(rptDs.getUid()).wrap(rptDs);
-            dataSourceMap.put(rptDs.getUid(), dataSource);
+            dataSource = DataSourcePoolFactory.create(rptDs.getDbPoolClass()).wrap(rptDs);
+            dataSourceMap.put(key, dataSource);
         }
         return dataSource;
     }

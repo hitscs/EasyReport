@@ -6,12 +6,18 @@
     <title>日志管理</title>
     <%@ include file="/WEB-INF/jsp/includes/common.jsp" %>
     <%@ include file="/WEB-INF/jsp/includes/header.jsp" %>
-    <%@ include file="/WEB-INF/jsp/includes/xframejs.jsp" %>
-    <script src="<%=request.getContextPath()%>/assets/js/sys/event.js?v=<%=Math.random()%>"></script>
+    <script src="${ctxPath}/assets/js/sys/event.js?v=${version}"></script>
 </head>
 <body class="easyui-layout">
-<div id="toolbar" class="toolbar">关键字:<input class="easyui-textbox" type="text" id="keyword" name="keyword"/>
+<div id="toolbar" class="toolbar">
+    属性:<select class="easyui-combobox" id="field-name" name="fieldName" style="width: 100px">
+    <option value="account">账号</option>
+    <option value="source">来源</option>
+    <option value="level">级别</option>
+    <option value="message">内容</option>
+</select> 关键字:<input class="easyui-textbox" type="text" id="keyword" name="keyword"/>
     <a id="btn-search" href="#" class="easyui-linkbutton" iconCls="icon-search"> 搜索 </a>
+    <input id="modal-action" type="hidden" name="action" value=""/>
 </div>
 <div style="height: 93%; padding: 2px">
     <div id="event-datagrid"></div>

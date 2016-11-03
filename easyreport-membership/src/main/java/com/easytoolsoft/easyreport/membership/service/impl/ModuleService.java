@@ -1,5 +1,6 @@
 package com.easytoolsoft.easyreport.membership.service.impl;
 
+import com.easytoolsoft.easyreport.common.tree.EasyUITreeNode;
 import com.easytoolsoft.easyreport.data.common.helper.PageInfo;
 import com.easytoolsoft.easyreport.data.common.service.AbstractCrudService;
 import com.easytoolsoft.easyreport.data.membership.dao.IModuleDao;
@@ -9,11 +10,14 @@ import com.easytoolsoft.easyreport.membership.service.IModuleService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service("EzrptMemberModuleService")
@@ -85,6 +89,7 @@ public class ModuleService
     }
 
     @Override
+    @Transactional
     public boolean remove(int id, int pid) {
         this.dao.deleteById(id);
         boolean hasChild = this.hasChildren(pid);
@@ -92,19 +97,18 @@ public class ModuleService
     }
 
     @Override
-    public void move(int sourceId, int targetId, int sourcePid) {
+    @Transactional
+    public void move(int sourceId, int targetId, int sourcePid, String sourcePath) {
         // 修改source节点的pid与path，hasChild值
         this.updateParentId(sourceId, targetId);
         this.updateHasChild(targetId, true);
-        this.updatePath(sourceId, this.getPath(targetId, sourceId));
-        // 递归修改source节点的所有子节点的path值
-        this.rebuildPathById(sourceId);
+        this.dao.updatePath(sourcePath, this.getPath(targetId, sourceId));
         // 修改source节点的父节点hasChild值
         this.updateHasChild(sourcePid, this.hasChildren(sourcePid));
-        this.rebuildAllPath();
     }
 
     @Override
+    @Transactional
     public Module paste(int sourceId, int targetId) {
         Module module = this.dao.selectById(sourceId);
         int count = this.count(targetId, module.getName());
@@ -163,6 +167,38 @@ public class ModuleService
             this.rebuildPath(modules, root);
         }
         this.dao.batchUpdate(modules);
+    }
+
+    @Override
+    public List<EasyUITreeNode<Module>> getModuleTree(List<Module> modules, Predicate<Module> predicate) {
+        List<EasyUITreeNode<Module>> roots = new ArrayList<>();
+        modules.stream()
+                .filter(predicate)
+                .filter(module -> Objects.equals(module.getParentId(), 0))
+                .sorted((x, y) -> x.getSequence() > y.getSequence() ? 1 : -1)
+                .forEach((Module module) -> this.addModuleTreeNode(roots, modules, module, predicate));
+        return roots;
+    }
+
+    private void addModuleTreeNode(List<EasyUITreeNode<Module>> children, List<Module> modules, Module module,
+                                   Predicate<Module> predicate) {
+        String cateId = Integer.toString(module.getId());
+        String pid = Integer.toString(module.getParentId());
+        String text = module.getName();
+        String state = module.getHasChild() > 0 ? "closed" : "open";
+        EasyUITreeNode<Module> parentNode = new EasyUITreeNode<>(cateId, pid, text, state, module.getIcon(), false, module);
+        this.addChildModuleTreeNodes(modules, parentNode, predicate);
+        children.add(parentNode);
+    }
+
+    private void addChildModuleTreeNodes(List<Module> modules, EasyUITreeNode<Module> parentNode,
+                                         Predicate<Module> predicate) {
+        Integer id = Integer.valueOf(parentNode.getId());
+        modules.stream()
+                .filter(predicate)
+                .filter(module -> Objects.equals(module.getParentId(), id))
+                .sorted((x, y) -> x.getSequence() > y.getSequence() ? 1 : -1)
+                .forEach(module -> this.addModuleTreeNode(parentNode.getChildren(), modules, module, predicate));
     }
 
     private void rebuildPath(List<Module> modules, final Module parent) {

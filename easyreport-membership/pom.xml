@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.easytoolsoft</groupId>
         <artifactId>easyreport</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.1-SNAPSHOT</version>
     </parent>
     <artifactId>easyreport-membership</artifactId>
     <packaging>jar</packaging>
@@ -14,6 +14,10 @@
     <description>Reporting membership management domain logic module</description>
     <dependencies>
         <!-- easyreport modules -->
+        <dependency>
+            <groupId>com.easytoolsoft</groupId>
+            <artifactId>easyreport-common</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.easytoolsoft</groupId>
             <artifactId>easyreport-data</artifactId>
@@ -69,6 +73,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
         <dependency>
@@ -99,6 +107,10 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
         </dependency>
     </dependencies>
 </project>
